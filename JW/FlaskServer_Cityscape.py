@@ -13,9 +13,35 @@ from matplotlib import gridspec
 from matplotlib import pyplot as plt
 
 
+LABEL_NAMES_ADE20K = np.array(['wall' ,'building' ,'sky' ,'floor' ,'tree' ,'ceiling' ,'road' ,'bed' ,'windowpane' ,'grass' ,'cabinet' ,'sidewalk' ,'person' ,'earth' ,'door' ,'table' ,'mountain' ,'plant' ,'curtain' ,'chair' ,'car' ,'water' ,'painting' ,'sofa' ,'shelf' ,'house' ,'sea' ,'mirror' ,'rug' ,'field' ,'armchair' ,'seat' ,'fence' ,'desk' ,'rock' ,'wardrobe' ,'lamp' ,'bathtub' ,'railing' ,'cushion' ,'base' ,'box' ,'column' ,'signboard' ,'chest of drawers' ,'counter' ,'sand' ,'sink' ,'skyscraper' ,'fireplace' ,'refrigerator' ,'grandstand' ,'path' ,'stairs' ,'runway' ,'case' ,'pool table' ,'pillow' ,'screen door' ,'stairway' ,'river' ,'bridge' ,'bookcase' ,'blind' ,'coffee table' ,'toilet' ,'flower' ,'book' ,'hill' ,'bench' ,'countertop' ,'stove' ,'palm' ,'kitchen island' ,'computer' ,'swivel chair' ,'boat' ,'bar' ,'arcade machine' ,'hovel' ,'bus' ,'towel' ,'light' ,'truck' ,'tower' ,'chandelier' ,'awning' ,'streetlight' ,'booth' ,'television' ,'airplane' ,'dirt track' ,'apparel' ,'pole' ,'land' ,'bannister' ,'escalator' ,'ottoman' ,'bottle' ,'buffet' ,'poster' ,'stage' ,'van' ,'ship' ,'fountain' ,'conveyer belt' ,'canopy' ,'washer' ,'plaything' ,'swimming pool' ,'stool' ,'barrel' ,'basket' ,'waterfall' ,'tent' ,'bag' ,'minibike' ,'cradle' ,'oven' ,'ball' ,'food' ,'step' ,'tank' ,'trade name' ,'microwave' ,'pot' ,'animal' ,'bicycle' ,'lake' ,'dishwasher' ,'screen' ,'blanket' ,'sculpture' ,'hood' ,'sconce' ,'vase' ,'traffic light' ,'tray' ,'ashcan' ,'fan' ,'pier' ,'crt screen' ,'plate' ,'monitor' ,'bulletin board' ,'shower' ,'radiator' ,'glass' ,'clock' ,'flag'])
+#LABEL_NAMES_CITYSCAPES = np.array(['unlabeled','ego vehicle','rectification border','out of roi','static' ,'dynamic','ground','road','sidewalk','parking','rail track','building','wall','fence' , 'guard rail' ,'bridge','tunnel' ,'pole','polegroup','traffic light','traffic sign','vegetation','terrain','sky','person','rider','car','truck','bus'  ,'caravan','trailer' ,'train','motorcycle','bicycle','license plate']);
+LABEL_NAMES_CITYSCAPES = np.array(['road','sidewalk','parking','rail track','person'
+                                      ,'rider','car','truck','bus' ,'on rails'
+                                      ,'motorcycle','bicycle','caravan','trailer','building'
+                                      ,'wall','fence', 'guard rail' ,'bridge','tunnel'
+                                      ,'pole','pole group','traffic sign','traffic light','vegetation'
+                                      ,'terrain','sky','ground','static', 'dynamic' ]);
+LABEL_NAMES_PASCAL = np.asarray([
+    'background', 'aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus',
+    'car', 'cat', 'chair', 'cow', 'diningtable', 'dog', 'horse', 'motorbike',
+    'person', 'pottedplant', 'sheep', 'sofa', 'train', 'tv'
+])
+
+
+
 download_path1 = "../model/deeplabv3_xception_ade20k_train_2018_05_29.tar.gz"
 download_path2 = "../model/deeplabv3_mnv2_ade20k_train_2018_12_03.tar.gz"
-saved_model_path = '../model/deeplab_ade20k/10/'
+download_path_cityscape1 = "../model/deeplabv3_cityscapes_train_2018_02_06.tar.gz"
+download_path_cityscape2 = "../model/deeplab_cityscapes_xception71_trainfine_2018_09_08.tar.gz"
+download_path_cityscape3 = "../model/deeplab_cityscapes_xception71_trainvalfine_2018_09_08.tar.gz"
+download_path_pascal1 = "../model/deeplabv3_pascal_trainval_2018_01_04.tar.gz"
+download_path_pascal2 = "../model/deeplabv3_pascal_train_aug_2018_01_04.tar.gz"
+
+
+LABEL_NAMES = LABEL_NAMES_CITYSCAPES;
+model_path = download_path_cityscape2;
+
+print(len(LABEL_NAMES))
 
 #MODEL = DeepLabModel(download_path1)
 #MODEL.store(saved_model_path)
@@ -111,10 +137,9 @@ def GetColorMap(image, seg_map):
     #print(unique_labels)
     return seg_image
 
-LABEL_NAMES = np.array(['wall' ,'building' ,'sky' ,'floor' ,'tree' ,'ceiling' ,'road' ,'bed' ,'windowpane' ,'grass' ,'cabinet' ,'sidewalk' ,'person' ,'earth' ,'door' ,'table' ,'mountain' ,'plant' ,'curtain' ,'chair' ,'car' ,'water' ,'painting' ,'sofa' ,'shelf' ,'house' ,'sea' ,'mirror' ,'rug' ,'field' ,'armchair' ,'seat' ,'fence' ,'desk' ,'rock' ,'wardrobe' ,'lamp' ,'bathtub' ,'railing' ,'cushion' ,'base' ,'box' ,'column' ,'signboard' ,'chest of drawers' ,'counter' ,'sand' ,'sink' ,'skyscraper' ,'fireplace' ,'refrigerator' ,'grandstand' ,'path' ,'stairs' ,'runway' ,'case' ,'pool table' ,'pillow' ,'screen door' ,'stairway' ,'river' ,'bridge' ,'bookcase' ,'blind' ,'coffee table' ,'toilet' ,'flower' ,'book' ,'hill' ,'bench' ,'countertop' ,'stove' ,'palm' ,'kitchen island' ,'computer' ,'swivel chair' ,'boat' ,'bar' ,'arcade machine' ,'hovel' ,'bus' ,'towel' ,'light' ,'truck' ,'tower' ,'chandelier' ,'awning' ,'streetlight' ,'booth' ,'television' ,'airplane' ,'dirt track' ,'apparel' ,'pole' ,'land' ,'bannister' ,'escalator' ,'ottoman' ,'bottle' ,'buffet' ,'poster' ,'stage' ,'van' ,'ship' ,'fountain' ,'conveyer belt' ,'canopy' ,'washer' ,'plaything' ,'swimming pool' ,'stool' ,'barrel' ,'basket' ,'waterfall' ,'tent' ,'bag' ,'minibike' ,'cradle' ,'oven' ,'ball' ,'food' ,'step' ,'tank' ,'trade name' ,'microwave' ,'pot' ,'animal' ,'bicycle' ,'lake' ,'dishwasher' ,'screen' ,'blanket' ,'sculpture' ,'hood' ,'sconce' ,'vase' ,'traffic light' ,'tray' ,'ashcan' ,'fan' ,'pier' ,'crt screen' ,'plate' ,'monitor' ,'bulletin board' ,'shower' ,'radiator' ,'glass' ,'clock' ,'flag'])
 FULL_LABEL_MAP = np.arange(len(LABEL_NAMES)).reshape(len(LABEL_NAMES), 1)
 FULL_COLOR_MAP = label_to_color_image(FULL_LABEL_MAP)
-print(FULL_COLOR_MAP)
+
 ##################################################
 # API part
 ##################################################
@@ -125,7 +150,7 @@ def predict():
     start = time.time()
 
     data = request.data.decode("utf-8")
-
+    print(0);
     if data == "":
         params = request.form
         x_in = json.loads(params['image'])
@@ -140,13 +165,14 @@ def predict():
     width = len(x_in[0])
     height = len(x_in)
 
+    print(1);
     na = np.array(x_in, dtype=np.uint8)
 
     img = Image.fromarray(na, 'RGB')
 
     img.save('./data/target.jpg')
     im = img.load()
-
+    print(2);
     #img = Image.new('RGB', (width, height))
     #img.putdata(tuple(x_in))
 
@@ -158,8 +184,9 @@ def predict():
     # Tensorflow part
     ##################################################
     resized_img, seg_map = MODEL.run(img)
+    print(3);
     seg_image = GetColorMap(resized_img, seg_map)
-
+    print(4);
     #y_out = persistent_sess.run(y, feed_dict={
     #    x: x_in
     #})
@@ -180,10 +207,12 @@ if __name__ == "__main__":
     ##################################################
     # Tensorflow part
     ##################################################
-    MODEL = DeepLabModel(download_path1)
+    MODEL = DeepLabModel(model_path)
     graph = MODEL.graph
     x = graph.get_tensor_by_name(MODEL.INPUT_TENSOR_NAME)
     y = graph.get_tensor_by_name(MODEL.OUTPUT_TENSOR_NAME)
+    print(x)
+    print(y)
 
     gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.7)
     sess_config = tf.ConfigProto(gpu_options=gpu_options)
@@ -193,4 +222,4 @@ if __name__ == "__main__":
     ##################################################
 
     print('Starting the API')
-    app.run(host='143.248.96.81', port = 35005)
+    app.run(host='143.248.96.81', port = 35006)
