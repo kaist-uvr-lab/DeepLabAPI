@@ -3,12 +3,11 @@ tf.disable_v2_behavior()
 
 import numpy as np
 from PIL import Image
-import json, argparse, time
+import json, time
 from flask import Flask, request
 from flask_cors import CORS
 
-from DeepLabV3 import DeepLabModel
-from six.moves import urllib
+from JW.DeepLabV3 import DeepLabModel
 from matplotlib import gridspec
 from matplotlib import pyplot as plt
 
@@ -57,7 +56,6 @@ print(len(LABEL_NAMES))
 
 def create_pascal_label_colormap():
   """Creates a label colormap used in PASCAL VOC segmentation benchmark.
-
   Returns:
     A Colormap for visualizing segmentation results.
   """
@@ -74,15 +72,12 @@ def create_pascal_label_colormap():
 
 def label_to_color_image(label):
   """Adds color defined by the dataset colormap to the label.
-
   Args:
     label: A 2D array with integer type, storing the segmentation label.
-
   Returns:
     result: A 2D array with floating type. The element of the array
       is the color indexed by the corresponding element in the input label
       to the PASCAL color map.
-
   Raises:
     ValueError: If label is not of rank 2 or its value is larger than color
       map maximum entry.
@@ -222,4 +217,4 @@ if __name__ == "__main__":
     ##################################################
 
     print('Starting the API')
-    app.run(host='143.248.96.81', port = 35006)
+    app.run(host='143.248.94.189', port = 35006)

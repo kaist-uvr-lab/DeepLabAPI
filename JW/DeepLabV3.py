@@ -14,12 +14,13 @@ class DeepLabModel(object):
 
   INPUT_TENSOR_NAME = 'ImageTensor:0'
   OUTPUT_TENSOR_NAME = 'SemanticPredictions:0'
-  INPUT_SIZE = 513
+  INPUT_SIZE = 320#160#320
   FROZEN_GRAPH_NAME = 'frozen_inference_graph'
   predict_signature_def = None
 
   def __init__(self, tarball_path):
     """Creates and loads pretrained deeplab model."""
+
     self.graph = tf.Graph()
 
     # Extract frozen graph from tar archive.
@@ -208,3 +209,4 @@ loaded = tf.saved_model.load(sess,[tf.saved_model.tag_constants.SERVING],saved_m
 graph = tf.get_default_graph()
 print(graph.get_operations())
 '''
+print(tf.Session)
