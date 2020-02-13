@@ -1,21 +1,24 @@
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
 
+import ujson
+#import hyperjson
 import numpy as np
 from PIL import Image
-import json, argparse, time
+import time
 from flask import Flask, request
 from flask_cors import CORS
+import base64
+import cv2
 
-from DeepLabV3 import DeepLabModel
-from six.moves import urllib
+from JW.DeepLabV3 import DeepLabModel
 from matplotlib import gridspec
 from matplotlib import pyplot as plt
 
-
-download_path1 = "../model/deeplabv3_xception_ade20k_train_2018_05_29.tar.gz"
-download_path2 = "../model/deeplabv3_mnv2_ade20k_train_2018_12_03.tar.gz"
-saved_model_path = '../model/deeplab_ade20k/10/'
+tf.debugging.set_log_device_placement(True)
+download_path1 = "./model/deeplabv3_xception_ade20k_train_2018_05_29.tar.gz"
+download_path2 = "./model/deeplabv3_mnv2_ade20k_train_2018_12_03.tar.gz"
+saved_model_path = './model/deeplab_ade20k/10/'
 
 #MODEL = DeepLabModel(download_path1)
 #MODEL.store(saved_model_path)
@@ -106,15 +109,16 @@ def vis_segmentation(image, seg_map):
 
 def GetColorMap(image, seg_map):
     seg_image = label_to_color_image(seg_map).astype(np.uint8)
-    unique_labels = np.unique(seg_map)
-    print(FULL_LABEL_MAP[unique_labels].astype(np.uint8))
+    #unique_labels = np.unique(seg_map)
+
+    #print(FULL_LABEL_MAP[unique_labels].astype(np.uint8))
     #print(unique_labels)
     return seg_image
 
 LABEL_NAMES = np.array(['wall' ,'building' ,'sky' ,'floor' ,'tree' ,'ceiling' ,'road' ,'bed' ,'windowpane' ,'grass' ,'cabinet' ,'sidewalk' ,'person' ,'earth' ,'door' ,'table' ,'mountain' ,'plant' ,'curtain' ,'chair' ,'car' ,'water' ,'painting' ,'sofa' ,'shelf' ,'house' ,'sea' ,'mirror' ,'rug' ,'field' ,'armchair' ,'seat' ,'fence' ,'desk' ,'rock' ,'wardrobe' ,'lamp' ,'bathtub' ,'railing' ,'cushion' ,'base' ,'box' ,'column' ,'signboard' ,'chest of drawers' ,'counter' ,'sand' ,'sink' ,'skyscraper' ,'fireplace' ,'refrigerator' ,'grandstand' ,'path' ,'stairs' ,'runway' ,'case' ,'pool table' ,'pillow' ,'screen door' ,'stairway' ,'river' ,'bridge' ,'bookcase' ,'blind' ,'coffee table' ,'toilet' ,'flower' ,'book' ,'hill' ,'bench' ,'countertop' ,'stove' ,'palm' ,'kitchen island' ,'computer' ,'swivel chair' ,'boat' ,'bar' ,'arcade machine' ,'hovel' ,'bus' ,'towel' ,'light' ,'truck' ,'tower' ,'chandelier' ,'awning' ,'streetlight' ,'booth' ,'television' ,'airplane' ,'dirt track' ,'apparel' ,'pole' ,'land' ,'bannister' ,'escalator' ,'ottoman' ,'bottle' ,'buffet' ,'poster' ,'stage' ,'van' ,'ship' ,'fountain' ,'conveyer belt' ,'canopy' ,'washer' ,'plaything' ,'swimming pool' ,'stool' ,'barrel' ,'basket' ,'waterfall' ,'tent' ,'bag' ,'minibike' ,'cradle' ,'oven' ,'ball' ,'food' ,'step' ,'tank' ,'trade name' ,'microwave' ,'pot' ,'animal' ,'bicycle' ,'lake' ,'dishwasher' ,'screen' ,'blanket' ,'sculpture' ,'hood' ,'sconce' ,'vase' ,'traffic light' ,'tray' ,'ashcan' ,'fan' ,'pier' ,'crt screen' ,'plate' ,'monitor' ,'bulletin board' ,'shower' ,'radiator' ,'glass' ,'clock' ,'flag'])
 FULL_LABEL_MAP = np.arange(len(LABEL_NAMES)).reshape(len(LABEL_NAMES), 1)
 FULL_COLOR_MAP = label_to_color_image(FULL_LABEL_MAP)
-print(FULL_COLOR_MAP)
+
 ##################################################
 # API part
 ##################################################
@@ -124,50 +128,29 @@ cors = CORS(app)
 def predict():
     start = time.time()
 
-    data = request.data.decode("utf-8")
+    #parsing requested data
+    params = ujson.loads(request.data)
+    x_in = base64.b64decode(params['image'])
+    width = int(params['w'])
+    height = int(params['h'])
 
-    if data == "":
-        params = request.form
-        x_in = json.loads(params['image'])
-
-    else:
-        params = json.loads(data)
-        x_in = params['image']
-
-    ############
     #Convert PIL Image
     ######
-    width = len(x_in[0])
-    height = len(x_in)
-
-    na = np.array(x_in, dtype=np.uint8)
-
-    img = Image.fromarray(na, 'RGB')
-
-    img.save('./data/target.jpg')
-    im = img.load()
-
-    #img = Image.new('RGB', (width, height))
-    #img.putdata(tuple(x_in))
-
-    #plt.figure(figsize=(20, 15))
-    #plt.imshow(img)
-    #plt.show()
+    img_array = np.frombuffer(x_in, dtype = np.uint8)
+    img_cv = cv2.imdecode(img_array,1)
+    img_cv = cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB)
+    img = Image.fromarray(img_cv)
 
     ##################################################
     # Tensorflow part
     ##################################################
     resized_img, seg_map = MODEL.run(img)
-    seg_image = GetColorMap(resized_img, seg_map)
 
-    #y_out = persistent_sess.run(y, feed_dict={
-    #    x: x_in
-    #})
     ##################################################
     # END Tensorflow part
     ##################################################
 
-    json_data = json.dumps({'seg_img': seg_image.tolist()})
+    json_data = ujson.dumps({'seg_label': seg_map.tolist(), 'w':len(seg_map[0]), 'h':len(seg_map)})
     print("Time spent handling the request: %f" % (time.time() - start))
 
     return json_data
@@ -180,12 +163,15 @@ if __name__ == "__main__":
     ##################################################
     # Tensorflow part
     ##################################################
+    #print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
+    #print(tf.Session())
+
     MODEL = DeepLabModel(download_path1)
     graph = MODEL.graph
     x = graph.get_tensor_by_name(MODEL.INPUT_TENSOR_NAME)
     y = graph.get_tensor_by_name(MODEL.OUTPUT_TENSOR_NAME)
 
-    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.7)
+    gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.8) #0.95
     sess_config = tf.ConfigProto(gpu_options=gpu_options)
     persistent_sess = tf.Session(graph=graph, config=sess_config)
     ##################################################
@@ -193,4 +179,5 @@ if __name__ == "__main__":
     ##################################################
 
     print('Starting the API')
-    app.run(host='143.248.96.81', port = 35005)
+    #app.run(host='143.248.94.189', port = 35005)
+    app.run(host='143.248.95.112', port=35005)
